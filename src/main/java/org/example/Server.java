@@ -19,7 +19,7 @@ public class Server {
         }
     }
 
-    public static void main(String[] args) {
+    public static void run() {
         try (ServerSocket serverSocket = new ServerSocket(port);) { // стартуем сервер один(!) раз
             System.out.println("Server started...");
             while (true) { // в цикле(!) принимаем подключения
@@ -50,4 +50,5 @@ public class Server {
             e.printStackTrace();
         }
     }
+
 }

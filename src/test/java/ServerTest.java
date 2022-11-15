@@ -1,73 +1,69 @@
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import java.io.*;
-import java.net.ServerSocket;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class ServerTest {
-    private static final int PORT = 8989;
-    private OutputStream serverOut;
-    private InputStream serverIn;
+    private static Thread serverThread;
+    private Socket socket;
+    private PrintWriter out;
+    private BufferedReader in;
+
+    @BeforeAll
+    static void ServerInit() throws InterruptedException {
+        serverThread = new ServerThread();
+        serverThread.setPriority(java.lang.Thread.NORM_PRIORITY + 1);
+        serverThread.start();
+        Thread.sleep(1000);
+    }
+
+    @BeforeEach
+    void ServerStart() throws IOException {
+        socket = new Socket("localhost", 8989);
+        out = new PrintWriter(socket.getOutputStream(), true);
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        socket.setSoTimeout(1000);
+    }
 
     @Test
-    void serverTest() throws IOException {
-        ServerSocket server = new ServerSocket(PORT);
-        listen(server);
-
-        Socket client = new Socket("localhost", PORT);
-        OutputStream clientOut = client.getOutputStream();
-        InputStream clientIn = client.getInputStream();
-
-        write(clientOut, "Hi");
-        assertRead(serverIn, "Hi");
-
-        write(serverOut, "Hello");
-        assertRead(clientIn, "Hello");
-
-        printWrite(clientOut, "Test printWrite");
-        assertRead(serverIn, "Test printWrite");
-
-        printWrite(serverOut, "Test printWrite again");
-        assertRead(clientIn, "Test printWrite again");
-
-        client.close();
-        server.close();
+    void DataAccept() {
+        System.out.println("sending test packet");
+        out.println("{\"title\": \"морковь\", \"date\": \"2022.11.15\", \"sum\": 20}");
+        try {
+            System.out.println("client received: " + in.readLine());
+        } catch (SocketTimeoutException e) {
+            fail("No response from server");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private void write(OutputStream out, String str) throws IOException {
-        out.write(str.getBytes());
-        out.flush();
+    @AfterEach
+    void ConnectionsClose() throws IOException {
+        in.close();
+        out.close();
+        socket.close();
     }
 
-    private void printWrite(OutputStream out, String str) {
-        PrintWriter pw = new PrintWriter(out);
-        pw.print(str);
-        pw.flush();
+    @AfterAll
+    static void ServerClose() throws InterruptedException {
+        try (
+                Socket socket = new Socket("localhost", 8989);
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);) {
+            socket.setSoTimeout(1000);
+            System.out.println("Kill");
+            serverThread.join();
+        } catch (SocketException e) {
+            fail("No connection to the server");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
-
-    private void assertRead(InputStream in, String expected) throws IOException {
-        assertEquals(Float.parseFloat("Too few bytes available for reading: "), expected.length(), in.available());
-
-        byte[] buf = new byte[expected.length()];
-        in.read(buf);
-        assertEquals(expected, new String(buf));
-    }
-
-    private void listen(ServerSocket server) {
-        new Thread(() -> {
-            try {
-                Socket socket = server.accept();
-                System.out.println("Incoming connection: " + socket);
-
-                serverOut = socket.getOutputStream();
-                serverIn = socket.getInputStream();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
-
 }
