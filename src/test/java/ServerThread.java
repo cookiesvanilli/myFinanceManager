@@ -1,5 +1,7 @@
 import org.example.Server;
 
+import java.io.IOException;
+
 public class ServerThread extends Thread {
     private final Server server;
 
@@ -13,6 +15,6 @@ public class ServerThread extends Thread {
 
     @Override
     public void run() {
-        Server.run();
+        server.run();
     }
 }

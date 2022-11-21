@@ -26,7 +26,7 @@ public class ServerTest {
 
     @BeforeEach
     void ServerStart() throws IOException {
-        socket = new Socket("localhost", 8989);
+        socket = new Socket("localhost", 8080);
         out = new PrintWriter(socket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         socket.setSoTimeout(1000);
@@ -55,7 +55,7 @@ public class ServerTest {
     @AfterAll
     static void ServerClose() throws InterruptedException {
         try (
-                Socket socket = new Socket("localhost", 8989);
+                Socket socket = new Socket("localhost", 8080);
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);) {
             socket.setSoTimeout(1000);
             System.out.println("Kill");
