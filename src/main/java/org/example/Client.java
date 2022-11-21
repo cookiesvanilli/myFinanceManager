@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class Client {
     public static void main(String[] args) throws FileNotFoundException {
         String host = "127.0.0.1";
-        int port = 8989;
+        int port = 8080;
 
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter the product name and cost: ");
