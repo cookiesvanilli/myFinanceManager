@@ -9,7 +9,7 @@ public class Server {
     private static final Map<String, String> goodsByCategory = TSVReader.readTSV(new File("categories.tsv"));
     private static final Map<String, Long> spending;
     // открываемый порт сервера
-    private static final int port = 8080;
+    private static final int port = 8989;
 
     static {
         if (!(new File("spending.json").exists())) {
